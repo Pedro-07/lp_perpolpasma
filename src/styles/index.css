@@ -1,0 +1,179 @@
+@import 'tailwindcss';
+
+/* Fontes self-hosted. Sem CDN: o publico chega em 4G irregular. */
+@import '@fontsource/anton/latin-400.css';
+@import '@fontsource-variable/sora/wght.css';
+
+/* CSS oficial do Lenis. Nao reescrever a mao: as classes mudam entre versoes. */
+@import 'lenis/dist/lenis.css';
+
+/*
+  Cor de sabor registrada como propriedade tipada.
+  Sem @property o browser trata o valor como string e nao interpola:
+  o GSAP consegue animar mesmo assim, mas o fallback de reduced-motion
+  (Secao 11 do SPEC) depende de transition CSS pura, que exige o registro.
+  inherits: true para que descendentes leiam o sabor ativo sem repassar prop.
+*/
+@property --pulp {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #fad163;
+}
+
+/*
+  Base do gradiente da camada 2 do pack. Registrada pelo mesmo motivo que
+  --pulp: sem @property o valor e string e nao interpola, e o gradiente
+  cortaria seco na troca de sabor em vez de acompanhar o topo.
+
+  O valor pode chegar como color-mix() nos sabores sem cor medida — registrada
+  como <color>, a propriedade resolve a mistura no valor computado e o GSAP
+  interpola normalmente.
+*/
+@property --pulp-base {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #e4b84f;
+}
+
+/*
+  Cor da particula do rio de polpa: a polpa na sombra, tres passos abaixo da
+  base. Registrada para interpolar junto com as outras na troca de sabor.
+
+  Nao e capricho de cor. Tingida com --pulp cheio, a particula quase sumia nos
+  sabores claros, porque o fundo da secao e derivado da MESMA cor — bacuri
+  dava 1,05 de contraste. Ver PARTICLE_FALLOFF_STEPS em data/flavors.ts, que
+  explica por que sao tres passos e nao dois nem quatro.
+*/
+@property --pulp-particle {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #a18135;
+}
+
+/*
+  Escuro do sabor, usado no nome dele na cena heroi. Registrada para
+  interpolar junto com as outras — sem registro, a troca de sabor mudaria a
+  cor do nome em corte seco enquanto o fundo transita suave.
+*/
+@property --pulp-ink {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #4a3400;
+}
+
+@property --accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #c9a227;
+}
+
+@theme {
+  /*
+    Base fixa — Secao 5 do SPEC.
+
+    O verde foi MEDIDO em 18/08/2026, e nao mais chutado: mediana do logotipo
+    impresso nos oito packshots. O valor anterior, #167a33, estava marcado
+    desde o inicio como "confirmar com conta-gotas no vetor" e tinha azul alto
+    demais (51 contra 18), o que fazia ele ler como verde de aplicativo.
+
+    O escuro nao foi medido: e derivado, preservando a mesma relacao de
+    luminosidade que o par antigo tinha em oklab (0,7276).
+
+    Se o vetor do logotipo chegar e discordar, corrige de novo. Ate la, este
+    e o verde mais proximo do produto que existe.
+  */
+  --color-brand-green: #167012;
+  --color-brand-green-dk: #0a4708;
+  --color-surface: #f7f5f0;
+  --color-ink: #14150f;
+  --color-ink-soft: #5a5c52;
+
+  --font-display: 'Anton', system-ui, sans-serif;
+  --font-body: 'Sora Variable', system-ui, sans-serif;
+
+  --container-page: 1400px;
+}
+
+:root {
+  /*
+    Estado inicial do sabor: bacuri abre o site na S1.
+    Cores medidas a conta-gotas no packshot em 12/08/2026.
+  */
+  --pulp: #fad163;
+  --pulp-base: #e4b84f;
+  --pulp-particle: #a18135;
+  --pulp-ink: #14150f;
+  --accent: #c9a227;
+
+  /*
+    Altura do palco do pack na cena heroi, em fracao da viewport.
+
+    Este e o tamanho do pack na tela, e e decisao de layout por breakpoint —
+    nao de calibracao. photoScale e photoOffsetY, em flavors.ts, alinham as
+    tres fotos UMAS CONTRA AS OUTRAS e nao dependem de viewport; este numero
+    diz o quanto o conjunto ocupa. Misturar os dois e impasse garantido: o
+    tamanho bom no desktop fica gigante no celular, e resolver isso no
+    photoScale desalinha os tres sabores de novo.
+
+    Escalar o palco escala tudo junto, entao mexer aqui nao invalida
+    calibracao nenhuma.
+  */
+  --pack-stage-h: 58dvh;
+
+  color-scheme: light;
+  background-color: var(--color-surface);
+}
+
+/* Breakpoint md do Tailwind. No desktop o pack divide a linha com a
+   tipografia, entao sobra altura para ele crescer. */
+@media (min-width: 48rem) {
+  :root {
+    --pack-stage-h: 74dvh;
+  }
+}
+
+html {
+  /* Lenis assume o smooth scroll; o nativo brigaria com o scrub. */
+  scroll-behavior: auto;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+    Kill switch global. O JS tambem checa a media query e desliga
+    ScrollTrigger e canvas; isto cobre o que for puramente CSS.
+  */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /*
+    Excecao deliberada ao reset acima, e a razao do @property existir.
+    Sem GSAP, a troca de sabor vira galeria estatica (Secao 11) — mas a cor
+    ainda precisa atravessar, senao o corte fica pior que a animacao.
+    Mudanca de cor nao dispara vestibulo; nao e o tipo de movimento que
+    prefers-reduced-motion pede para remover.
+    Regra depois do reset e com !important para vencer no cascade.
+  */
+  :root {
+    transition:
+      --pulp 400ms ease,
+      --pulp-base 400ms ease,
+      --accent 400ms ease !important;
+  }
+}

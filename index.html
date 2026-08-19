@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0A4708" />
+
+    <title>Perpolpas — polpa de fruta de Mata Roma, Maranhão</title>
+    <meta
+      name="description"
+      content="Perpolpas é uma indústria de polpa de fruta em Mata Roma, Maranhão. Pack com 5 unidades de 100 g."
+    />
+
+    <!--
+      Toda afirmação aqui é fato que o SPEC declara: cidade, estado e formato
+      do pack. Nada de "100% natural" ou equivalente enquanto a formulação e a
+      redação legal permitida não voltarem do cliente (Seção 14). Meta
+      description é conteúdo publicado como qualquer outro.
+    -->
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Perpolpas" />
+    <meta
+      property="og:title"
+      content="Perpolpas — polpa de fruta de Mata Roma, Maranhão"
+    />
+    <meta
+      property="og:description"
+      content="Indústria de polpa de fruta em Mata Roma, Maranhão. Pack com 5 unidades de 100 g."
+    />
+
+    <!--
+      TODO: og:image e og:url dependem de duas coisas que não existem ainda.
+      - og:image: precisa de um packshot real. Sem imagem é melhor que com
+        imagem quebrada — o link da bio abriria com placeholder cinza.
+      - og:url e <link rel="canonical">: dependem do domínio de produção,
+        que ainda não foi decidido. Decisão do Pedro, não do cliente.
+      Enquanto og:image não existir, twitter:card fica em "summary": pedir
+      "summary_large_image" sem imagem grande rende um card vazio.
+    -->
+    <meta name="twitter:card" content="summary" />
+
+    <!--
+      JSON-LD com os campos confirmados e mais nada.
+
+      Só entra aqui o que o SPEC afirma. Structured data com endereço ou
+      telefone inventado é pior que structured data ausente: o Google publica
+      o dado errado em resultado de busca, e quem liga para o número errado
+      não sabe que o site estava incompleto.
+
+      Registro confirmado em 12/08/2026, do cartão CNPJ. Os mesmos valores
+      estão em src/data/content.ts, que alimenta a S6. Este arquivo é estático
+      e não importa de lá: mudou um, mude o outro.
+
+      "name" é "Perpolpas", sem hífen, como no logotipo e no rótulo. O nome
+      fantasia registrado, com hífen, entra em alternateName.
+
+      Endereço e telefone confirmados pelo Pedro em 17/08/2026, e os dois
+      fecham divergência: o número da rua é 50, apesar de MAPA, INPI e cartão
+      CNPJ dizerem 10; e o telefone é PENDÊNCIA CRÍTICA: circulam três
+      números — (98) 98427-2003 aqui, (98) 98472-9000 no banner de feira e
+      (98) 98745-1283 no rótulo do maracujá. Structured data com telefone
+      errado é o Google republicando o erro; revisar assim que confirmar.
+
+      Horário de atendimento confirmado em 17/08/2026.
+
+      Falta, e cada item destrava com uma pergunta do docs/PENDENCIAS-CLIENTE.md:
+        url, logo, image  → domínio de produção e logotipo em vetor
+        sameAs            → depende de resolver qual Instagram é o oficial:
+                            o Pedro confirmou @perpolpasma e o rótulo do
+                            maracujá traz @perpolpasbr impresso
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": ["FoodEstablishment", "Manufacturer"],
+        "name": "Perpolpas",
+        "alternateName": "Per-Polpas",
+        "legalName": "P. do N. Monteles Indústria e Comércio Ltda",
+        "taxID": "04.623.570/0001-99",
+        "foundingDate": "2001-08-23",
+        "description": "Indústria de polpa de fruta.",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "R. Maria Garreto de Sousa, 50 - Centro",
+          "addressLocality": "Mata Roma",
+          "addressRegion": "MA",
+          "postalCode": "65510-000",
+          "addressCountry": "BR"
+        },
+        "telephone": "+55 98 98427-2003",
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday"
+            ],
+            "opens": "07:00",
+            "closes": "17:30"
+          },
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": "Saturday",
+            "opens": "07:00",
+            "closes": "11:30"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
