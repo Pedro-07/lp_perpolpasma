@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { Section } from '@/components/ui/Section'
-import { ConfirmableText } from '@/components/ui/Pending'
 import { PackPhoto } from '@/features/pack/PackPhoto'
 import {
   HERO_STAGE_RATIO,
@@ -39,6 +38,20 @@ export function S3Catalogo() {
   const [openId, setOpenId] = useState<FlavorId | null>(null)
   const openFlavor = FLAVORS.find((f) => f.id === openId) ?? null
 
+  /*
+    Anda pela lista a partir do sabor aberto, dando a volta nas pontas. O
+    modulo com soma de FLAVORS.length antes do resto trata o passo negativo:
+    em JavaScript, -1 % 8 e -1, e nao 7.
+  */
+  const navegar = useCallback((passo: number) => {
+    setOpenId((atual) => {
+      if (!atual) return atual
+      const i = FLAVORS.findIndex((f) => f.id === atual)
+      const proximo = (i + passo + FLAVORS.length) % FLAVORS.length
+      return FLAVORS[proximo].id
+    })
+  }, [])
+
   return (
     <MotionConfig reducedMotion="user" transition={SPRING}>
       <Section id="s3" title={CONTENT.catalogo.title}>
@@ -73,7 +86,7 @@ export function S3Catalogo() {
           contraste com os cards claros resolve sozinho o "nao competir": o
           olho nao le isto como o nono sabor.
         */}
-        <div className="mt-10 grid gap-4 rounded-lg bg-brand-green-dk px-6 py-10 text-surface md:px-10">
+        <div className="mt-10 grid justify-items-center gap-4 rounded-lg bg-brand-green-dk px-6 py-12 text-center text-surface md:px-10">
           <h3 className="max-w-[20ch] font-display text-3xl leading-tight tracking-tighter md:text-5xl">
             {CONTENT.catalogo.moreTitle}
           </h3>
@@ -85,14 +98,11 @@ export function S3Catalogo() {
           <p className="max-w-[46ch] font-body text-base leading-relaxed text-surface">
             {CONTENT.catalogo.moreLead}
           </p>
-          <p>
-            <ConfirmableText value={CONTENT.catalogo.flavorCount} />
-          </p>
           <a
             href={whatsappLink(CONTENT.catalogo.moreMessage)}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-flex min-h-[44px] w-fit items-center justify-center rounded-md bg-surface px-6 font-body text-sm text-ink"
+            className="mt-2 inline-flex min-h-[44px] items-center justify-center rounded-md bg-surface px-6 font-body text-sm text-ink"
           >
             Perguntar no WhatsApp
           </a>
@@ -103,6 +113,7 @@ export function S3Catalogo() {
             <FlavorDetail
               flavor={openFlavor}
               onClose={() => setOpenId(null)}
+              onNavigate={navegar}
             />
           )}
         </AnimatePresence>
@@ -181,18 +192,29 @@ function FlavorCard({
 function FlavorDetail({
   flavor,
   onClose,
+  onNavigate,
 }: {
   flavor: Flavor
   onClose: () => void
+  onNavigate: (passo: number) => void
 }) {
-  // Escape fecha. Sem isso o shared element vira armadilha de teclado.
+  /*
+    Teclado: Escape fecha e as setas navegam.
+
+    Sem Escape o shared element vira armadilha de teclado. As setas existem
+    pelo mesmo motivo que os botoes: quem abriu um sabor quer comparar com o
+    vizinho, e fechar-abrir-fechar para isso e trabalho que a interface pode
+    poupar.
+  */
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
+      else if (event.key === 'ArrowLeft') onNavigate(-1)
+      else if (event.key === 'ArrowRight') onNavigate(1)
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
+  }, [onClose, onNavigate])
 
   return (
     <motion.div
@@ -215,6 +237,34 @@ function FlavorDetail({
         layout
         className="relative grid max-h-full w-full max-w-[560px] gap-5 overflow-y-auto rounded-lg bg-surface p-6"
       >
+        {/*
+          Setas de navegacao. Ficam no topo do painel, fora do fluxo do
+          conteudo, para nao empurrar a informacao para baixo — e a mesma
+          altura em todos os sabores, entao o alvo nao se move quando a pessoa
+          avanca. Alvo de 44px (Secao 9).
+
+          A volta e circular: do ultimo sabor a seta avanca para o primeiro.
+          Beco sem saida no fim da lista obrigaria a fechar e reabrir.
+        */}
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            aria-label="Sabor anterior"
+            onClick={() => onNavigate(-1)}
+            className="grid min-h-[44px] min-w-[44px] place-items-center rounded-md border border-ink/20 font-body text-lg text-ink"
+          >
+            &#8592;
+          </button>
+          <button
+            type="button"
+            aria-label="Próximo sabor"
+            onClick={() => onNavigate(1)}
+            className="grid min-h-[44px] min-w-[44px] place-items-center rounded-md border border-ink/20 font-body text-lg text-ink"
+          >
+            &#8594;
+          </button>
+        </div>
+
         <div className="grid grid-cols-[7rem_1fr] items-start gap-5">
           <motion.div layoutId={`pack-${flavor.id}`}>
             <CardPack flavor={flavor} priority />
@@ -238,13 +288,7 @@ function FlavorDetail({
           <div className="grid gap-1">
             <dt className="text-ink-soft">Rendimento</dt>
             <dd>
-              <ConfirmableText value={CONTENT.comoUsar.yieldPerPack} />
-            </dd>
-          </div>
-          <div className="grid gap-1">
-            <dt className="text-ink-soft">Safra</dt>
-            <dd>
-              <ConfirmableText value={CONTENT.catalogo.harvest} />
+              {CONTENT.comoUsar.yieldPerPack}
             </dd>
           </div>
           <div className="grid gap-1">
@@ -256,9 +300,6 @@ function FlavorDetail({
                 aparece sempre; a sugestao por sabor continua pendencia.
               */}
               <p>{CONTENT.comoUsar.ratio}</p>
-              <p className="mt-1">
-                <ConfirmableText value={CONTENT.catalogo.preparation} />
-              </p>
             </dd>
           </div>
         </dl>

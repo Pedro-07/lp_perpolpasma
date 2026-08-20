@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Section } from '@/components/ui/Section'
 import { ConfirmableText } from '@/components/ui/Pending'
 import { CONTENT, whatsappLink } from '@/data/content'
@@ -34,6 +33,10 @@ const CONTATO_MESSAGE = 'Olá! Vim pelo site da Perpolpas.'
   A secao e de ACAO: quem chega aqui ja decidiu falar com a empresa. Alvo de
   44px (Secao 9).
 
+  Sobraram DOIS botoes, e a diferenca entre eles e proposital. O secundario
+  contornado sumiu em 20/08/2026, quando o mapa passou a abrir sozinho e o
+  Instagram virou texto — nenhum dos dois disputa com o pedido.
+
   O primario usa --brand-green-dk, e nao --brand-green, desde 18/08/2026.
 
   O token estava sendo renderizado certo — o problema e o proprio token: o
@@ -43,30 +46,35 @@ const CONTATO_MESSAGE = 'Olá! Vim pelo site da Perpolpas.'
   fechar a cor (Secao 5), o escuro da marca resolve: e mais fechado, ja existe
   no sistema e nao inventa valor nenhum.
 
-  Nao entra icone: emoji e proibido (Secao 2) e o logotipo do WhatsApp e marca
-  de terceiro, que reforcaria exatamente a leitura errada.
+  UM VERDE SO, o da paleta — decisao do Pedro em 20/08/2026, que reverte o
+  verde do aplicativo introduzido no mesmo dia.
+
+  O botao do numero chegou a usar #25D366 para identificar o canal. Voltou
+  para --brand-green-dk com texto em surface, igual ao heroi: o site tem uma
+  paleta, e cor de terceiro dentro dela chama atencao para o aplicativo em vez
+  de para a marca.
+
+  O ICONE FICA. Ele identifica o canal sozinho, que era o papel que a cor
+  estava tentando cumprir — e faz isso sem gastar uma cor fora da paleta.
+
+  Consequencia a saber: os dois botoes da secao ficaram visualmente iguais.
+  Quem quiser devolver hierarquia ao pedido tem duas saidas sem sair da
+  paleta — contornar o botao do numero em vez de preenche-lo, ou reduzir o
+  corpo dele. Nao fiz nenhuma das duas porque nao foi pedido.
 */
 const BUTTON_BASE =
   'inline-flex min-h-[44px] items-center justify-center rounded-md px-6 font-body text-sm'
 const BUTTON_PRIMARY = `${BUTTON_BASE} bg-brand-green-dk text-surface`
-const BUTTON_SECONDARY = `${BUTTON_BASE} border border-ink/25 text-ink`
+/*
+  Botao do numero: o mesmo verde e o mesmo texto do heroi, mais o icone.
+  Surface sobre o escuro da marca da 10,05:1, AAA.
+
+  "Branco" aqui e o off-white da paleta, #F7F5F0, e nao #FFF puro — e o mesmo
+  tom que a S1 e o loader usam sobre o mesmo fundo.
+*/
+const BUTTON_WHATSAPP = `${BUTTON_PRIMARY} gap-2`
 
 export function S4Contato() {
-  /*
-    CLICK-TO-LOAD do mapa. O iframe do Google so entra na pagina depois de
-    alguem pedir.
-
-    `loading="lazy"` sozinho nao resolvia: ele adia o download, mas nao adia o
-    cookie de terceiro — quem rola ate o fim carrega o Google do mesmo jeito,
-    e esta e a ultima secao, entao quem chega aqui e justamente quem vai rolar
-    ate o fim. Imagem estatica tambem nao servia: a legitima exige chave da
-    Static Maps API com faturamento, e captura de tela tem restricao de
-    licenca — trocaria peso por problema de licenciamento.
-
-    Assim o custo de terceiro e ZERO ate o clique, sem chave de API e sem
-    questao de licenca. Ver Secao 10.
-  */
-  const [mapaCarregado, setMapaCarregado] = useState(false)
   const year = new Date().getFullYear()
 
   return (
@@ -82,9 +90,31 @@ export function S4Contato() {
               href={whatsappLink(CONTATO_MESSAGE)}
               target="_blank"
               rel="noopener noreferrer"
-              className={BUTTON_SECONDARY}
+              className={BUTTON_WHATSAPP}
             >
-              <ConfirmableText value={CONTENT.contato.whatsapp} />
+              {/*
+                Balao com fone, desenhado aqui — nao e o logotipo oficial da
+                Meta. Identifica o canal sem embutir arquivo de marca de
+                terceiro, mesma escolha do icone do Instagram no rodape.
+              */}
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-4 w-4 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20.5 11.6a8.4 8.4 0 0 1-12.3 7.4L3.5 20.5l1.6-4.6A8.4 8.4 0 1 1 20.5 11.6Z" />
+                <path
+                  d="M9.2 9c.2 1.9 1.6 3.9 3.6 4.9l1.2-1.1 2.1 1c-.3 1-1.3 1.6-2.4 1.4-2.9-.6-5.3-3-5.9-5.9-.2-1.1.4-2.1 1.4-2.4Z"
+                  fill="currentColor"
+                  stroke="none"
+                />
+              </svg>
+              {CONTENT.contato.whatsapp}
             </a>
           </dd>
         </div>
@@ -112,39 +142,31 @@ export function S4Contato() {
         </div>
       </dl>
 
-      {/* Faixa 2 — o mapa, fora da grade e em largura inteira. */}
+      {/*
+        Faixa 2 — o mapa, fora da grade e em largura inteira.
+
+        MAPA ABERTO, sem clique — decisao do Pedro em 20/08/2026, que reverte
+        o click-to-load de 17/08.
+
+        O que se perde fica registrado: `loading="lazy"` adia o download mas
+        NAO adia o cookie de terceiro para quem rola ate aqui, e esta e a
+        ultima secao — quem chega e justamente quem rola ate o fim. O site
+        continua sem aviso de cookies e sem politica de privacidade, esta por
+        decisao de 17/08.
+
+        Proporcao por aspect-ratio e nao por altura fixa: altura fixa deixaria
+        faixa vazia no desktop e mapa achatado no celular.
+      */}
       <div className="mt-16 border-t border-ink/15 pt-10">
         <div className="aspect-[4/3] w-full overflow-hidden rounded-lg border border-ink/15 md:aspect-[21/9]">
-          {mapaCarregado ? (
-            <iframe
-              src={CONTENT.contato.mapEmbed}
-              title={`Mapa da fábrica em ${CONTENT.brand.city}`}
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-              className="block h-full w-full border-0"
-            />
-          ) : (
-            /*
-              A moldura vazia tem a MESMA proporcao do iframe, entao trocar um
-              pelo outro nao desloca nada abaixo — sem salto de layout.
-            */
-            <div className="grid h-full place-items-center bg-ink/5 px-6">
-              <div className="grid justify-items-center gap-4 text-center">
-                <p className="max-w-[44ch] font-body text-sm leading-relaxed text-ink-soft">
-                  O mapa é carregado do Google e só entra na página quando você
-                  pede. Assim ele não pesa nem deixa cookie de terceiro para
-                  quem não vai usá-lo.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setMapaCarregado(true)}
-                  className={BUTTON_SECONDARY}
-                >
-                  Ver o mapa
-                </button>
-              </div>
-            </div>
-          )}
+          <iframe
+            src={CONTENT.contato.mapEmbed}
+            title={`Mapa da fábrica em ${CONTENT.brand.city}`}
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+            className="block h-full w-full border-0"
+          />
         </div>
       </div>
 
@@ -208,7 +230,7 @@ export function S4Contato() {
               rel="noopener noreferrer"
               className="underline underline-offset-4"
             >
-              <ConfirmableText value={CONTENT.contato.whatsapp} />
+              {CONTENT.contato.whatsapp}
             </a>
             <address className="not-italic text-ink-soft">
               {CONTENT.contato.address}
@@ -225,20 +247,39 @@ export function S4Contato() {
             <dt className="text-ink-soft">CNPJ</dt>
             <dd>{CONTENT.brand.cnpj}</dd>
           </div>
-          <div className="grid justify-items-start gap-2">
+          <div className="grid gap-1">
             <dt className="text-ink-soft">Instagram</dt>
             <dd>
               {/*
+                Texto com icone, e nao botao. O botao dava a este item o mesmo
+                peso do CTA de pedido, que e a unica acao que o site quer — e
+                perfil de rede nao disputa com pedido.
+
+                O icone e desenho proprio, nao o logotipo da Meta: retangulo
+                arredondado com lente e ponto. Identifica a rede sem embutir
+                marca de terceiro.
+
                 RISCO CONHECIDO: o handle nao esta fechado. O Pedro confirmou
-                @perpolpasma e o rotulo do maracuja traz @perpolpasbr. Como
-                botao, um @ errado e um clique que nao chega a lugar nenhum.
+                @perpolpasma e o rotulo do maracuja traz @perpolpasbr.
               */}
               <a
                 href={`https://instagram.com/${CONTENT.social.instagram.replace('@', '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={BUTTON_SECONDARY}
+                className="inline-flex min-h-[44px] items-center gap-2 underline underline-offset-4"
               >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" />
+                </svg>
                 {CONTENT.social.instagram}
               </a>
             </dd>

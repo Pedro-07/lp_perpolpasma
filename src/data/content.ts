@@ -1,4 +1,4 @@
-import { pending, provisional, type Confirmable } from './pending'
+import { pending, type Confirmable } from './pending'
 
 /*
   Toda copy do site.
@@ -87,43 +87,37 @@ export const CONTENT = {
 
   catalogo: {
     title: 'Catálogo',
-    // [CONFIRMAR] do card, na Secao 8. O rendimento reaproveita comoUsar.
-    harvest: pending('Qual a safra de cada sabor? Há sabor sazonal?'),
-    /*
-      REFINAMENTO — pendencia aberta em 18/08/2026.
-
-      O catalogo real tem mais de 15 sabores; o site mostra oito. O bloco de
-      chamada no fim do grid fala em "mais de 15" porque e o que da para
-      afirmar hoje sem contar errado.
-
-      "20 sabores" comunicaria escala melhor, e o material de historia sugere
-      que o numero pode ser maior — mas numero de catalogo e o tipo de coisa
-      que o cliente corrige em publico. Enquanto a contagem exata nao vier,
-      fica a formulacao conservadora.
-    */
     /*
       Faixa de chamada no fim do grid. O site mostra oito sabores e o catalogo
-      real passa de 15 — o resto vai por conversa, e nao por pagina separada
-      nem PDF: rota extra vira conteudo desatualizado, e download em 4G perde
-      a pessoa no caminho (decisao do Pedro, 18/08/2026).
+      real tem mais — o resto vai por conversa, e nao por pagina separada nem
+      PDF: rota extra vira conteudo desatualizado, e download em 4G perde a
+      pessoa no caminho (decisao do Pedro, 18/08/2026).
+
+      O texto deixou de afirmar quantidade em 20/08/2026. Antes dizia "sao
+      mais de 15 sabores" e carregava uma pendencia junto, para confirmar o
+      numero exato. Convidar a pedir o catalogo resolve os dois: comunica que
+      ha mais sem depender de uma contagem que ninguem fechou.
     */
     moreTitle: 'Ver todos os sabores',
-    moreLead: 'São mais de 15 sabores. O site mostra oito.',
-    moreMessage: 'Olá! Queria saber quais são todos os sabores de polpa.',
-    flavorCount: pending(
-      'Quantos sabores o catálogo tem exatamente hoje? O site fala em "mais ' +
-        'de 15" por segurança, mas o número exato comunica escala melhor.',
-    ),
-    preparation: pending(
-      'Há sugestão de preparo por sabor, ou vale a mesma proporção para todos?',
-    ),
+    moreLead:
+      'Para receber o catálogo de sabores disponíveis, fale no WhatsApp.',
+    moreMessage: 'Olá! Queria receber o catálogo de sabores disponíveis.',
   },
 
   comoUsar: {
     title: 'Como usar',
-    // Proporcao afirmada na Secao 6 do SPEC.
+    /*
+      Proporcao afirmada na Secao 6 do SPEC, e desde 20/08/2026 ela vale para
+      TODOS os sabores.
+
+      Existia uma pendencia perguntando se cada sabor tinha sugestao propria
+      de preparo. Ela saiu do card por decisao do Pedro, e sair do card e a
+      resposta: o site passa a afirmar a mesma proporcao para os oito. Se
+      algum sabor tiver preparo diferente, e aqui que muda.
+    */
     ratio: 'Uma unidade de 100 g para 200 ml de água. Dá um copo.',
-    yieldPerPack: pending('Qual o rendimento oficial por unidade e por pack?'),
+    // Confirmado em 20/08/2026.
+    yieldPerPack: '200 ml por unidade.',
   },
 
   contato: {
@@ -176,16 +170,27 @@ export const CONTENT = {
     cta: 'Pedir no WhatsApp',
     /** Mensagem que acompanha o CTA: a intencao que o rotulo promete. */
     ctaMessage: 'Olá! Quero fazer um pedido.',
-    whatsapp: provisional(
-      '(98) 98427-2003',
-      'CRÍTICO: confirmar o WhatsApp com a cliente. Circulam três números — ' +
-        '(98) 98427-2003 em uso, (98) 98472-9000 no banner de feira e ' +
-        '(98) 98745-1283 no rótulo do maracujá. O campo monta o link de ' +
-        'todos os CTAs do site.',
-    ),
+    /*
+      CONFIRMADO na tela em 20/08/2026 por decisao do Pedro. Deixa de ser
+      `provisional`: e este o numero que o site publica.
+
+      As outras duas variantes que circularam continuam registradas, porque a
+      divergencia existiu e pode voltar a aparecer: (98) 98472-9000 no banner
+      de feira, e (98) 98745-1283 impresso no rotulo do maracuja. Se o rotulo
+      estiver desatualizado, quem tem o pack na mao liga para o numero errado
+      — vale conferir antes da proxima tiragem.
+    */
+    whatsapp: '(98) 98427-2003',
+    /*
+      Numero da rua confirmado como 50 em 17/08/2026, apesar de MAPA, INPI e
+      cartao CNPJ dizerem 10. Registro desatualizado e mais comum que fachada
+      errada.
+
+      O mesmo endereco e telefone estao no JSON-LD do index.html, que e
+      estatico e nao consegue importar daqui. Mudou um, mude o outro.
+    */
     address:
       'R. Maria Garreto de Sousa, 50 - Centro, Mata Roma - MA, 65510-000',
-    // Confirmado em 17/08/2026.
     hours: 'Segunda a sexta, das 7h às 17h30. Sábado, das 7h às 11h30.',
     /*
       Mapa confirmado em 17/08/2026: o Pedro mandou o embed do Google Maps do
@@ -261,7 +266,11 @@ export function whatsappLink(message: string): string {
   a pessoa veio e o que ela quer, e nada sobre composicao.
 */
 export function whatsappLinkFor(flavorName: string): string {
-  return whatsappLink(
-    `Olá! Vim pelo site e queria saber sobre a polpa de ${flavorName}.`,
-  )
+  /*
+    A mensagem do card NOMEIA O SABOR, e nao repete a generica do CTA global.
+    Quem clica no card do morango ja escolheu; abrir a conversa com "quero
+    fazer um pedido" joga essa escolha fora e obriga a pessoa a digitar de
+    novo o que ela acabou de apontar.
+  */
+  return whatsappLink(`Olá! Quero fazer um pedido de polpa de ${flavorName}.`)
 }
