@@ -5,7 +5,6 @@ import {
   HERO_STAGE_RATIO,
   HERO_STAGE_WIDTH,
   PACK_PHOTO_STAGE_LABEL,
-  PHOTO_LAYER_ATTR,
   packPhotoLabel,
 } from '@/features/pack/pack-photos'
 import { gsap } from '@/lib/gsap'
@@ -296,7 +295,6 @@ export function S2Sabores() {
               ref={(el) => {
                 photoRefs.current[i] = el
               }}
-              {...{ [PHOTO_LAYER_ATTR]: flavor.id }}
               className="absolute inset-0 will-change-[opacity]"
             >
               {/* Ativo e proximo adiantados; o resto lazy (Secao 7). */}

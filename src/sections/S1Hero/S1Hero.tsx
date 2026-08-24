@@ -69,7 +69,7 @@ export function S1Hero() {
   const typeRef = useRef<HTMLDivElement>(null)
   const packRef = useRef<HTMLDivElement>(null)
   const hintRef = useRef<HTMLDivElement>(null)
-  const hintLineRef = useRef<HTMLSpanElement>(null)
+  const hintDashRef = useRef<HTMLSpanElement>(null)
   const entranceRef = useRef<HTMLDivElement>(null)
   const pointerRef = useRef<HTMLDivElement>(null)
   const lineRefs = useRef<(HTMLSpanElement | null)[]>([])
@@ -194,17 +194,25 @@ export function S1Hero() {
         descobre que ha pagina abaixo: a S1 ocupa a tela inteira e nao tem
         borda cortada visivel no celular.
 
-        Dois elementos, dois donos, pela regra da Secao 3: o pulso vive na
-        linha de dentro e o sumico vive no wrapper. No mesmo elemento, os dois
-        tweens disputariam a mesma opacidade e um apagaria o outro.
+        Dois elementos, dois donos, pela regra da Secao 3: o traco vive dentro
+        do trilho e o sumico vive no wrapper. No mesmo elemento, os dois tweens
+        disputariam a mesma opacidade e um apagaria o outro.
+
+        UM TRACO QUE DESCE, e nao um pulso de opacidade — trocado em
+        24/08/2026. O pulso ia de 0,7 a 0,25 numa linha de 1px sobre verde
+        escuro: no piso ele sumia, e mesmo no topo dizia apenas "existe algo
+        aqui", nunca "role para baixo". Direcao e o que a dica precisa
+        comunicar, e opacidade nao tem direcao.
+
+        So transform e opacity, dentro da Secao 10. O trilho e o gradiente
+        estatico do CSS; quem se move e o traco, clipado pelo overflow.
       */
-      gsap.to(hintLineRef.current, {
-        opacity: 0.25,
-        duration: 1.6,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut',
-      })
+      const hint = gsap.timeline({ repeat: -1, repeatDelay: 0.4 })
+      hint
+        .set(hintDashRef.current, { yPercent: -110, opacity: 0 })
+        .to(hintDashRef.current, { opacity: 1, duration: 0.3 })
+        .to(hintDashRef.current, { yPercent: 300, duration: 1.5, ease: 'none' }, 0)
+        .to(hintDashRef.current, { opacity: 0, duration: 0.35 }, 1.25)
 
       /*
         Some com o scroll, nao com temporizador: quem ja rolou nao precisa
@@ -282,8 +290,35 @@ export function S1Hero() {
               tem 14 caracteres e o bloco de texto passou de 8 para 6 colunas
               quando o leque entrou; no tamanho anterior ela transbordava a
               coluna em viewport de desktop estreito.
+
+              O RECUO E LIMITADO PELO PADDING DO CONTAINER, e essa e a correcao
+              de 24/08/2026. Era `-ml-[3vw]` puro, e o Container tem `px-6` —
+              24px fixos. A partir de 800px de viewport o recuo passa de 24px e
+              a headline sai da tela:
+
+                viewport   recuo   borda da h1
+                     768    23,0          +1,0   ok
+                     900    27,0          -3,0   corta
+                    1024    30,7          -6,7   corta
+                    1280    38,4         -14,4   corta
+                    1440    43,2          +0,8   ok
+                    1920    57,6           +226  ok
+
+              A faixa quebrada ia de 801px a 1438px — 1024, 1280 e 1366, que
+              sao as tres resolucoes de notebook mais comuns. A primeira letra
+              de CADA linha ficava fora da tela. Acima de 1440 o container para
+              de crescer em max-w-page e a margem de centralizacao salvava;
+              abaixo de 800 o recuo ainda cabia. Some justamente nos extremos
+              onde alguem testaria.
+
+              min() resolve sem discutir a intencao: o recuo cresce com a tela
+              ate encostar no limite do container e para ali. A headline fica
+              rente a borda, nunca alem dela.
+
+              Cuidado ao mexer: 24px aqui e o `px-6` do Container. Se o padding
+              do container mudar, este numero muda junto ou o corte volta.
             */
-            className="mt-4 font-display text-[11vw] leading-[0.88] tracking-tighter md:-ml-[3vw] md:text-[7.5vw]"
+            className="mt-4 font-display text-[11vw] leading-[0.88] tracking-tighter md:-ml-[min(3vw,24px)] md:text-[7.5vw]"
           >
             {lines.map((line, i) => (
               /*
@@ -439,10 +474,19 @@ export function S1Hero() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-6 col-span-12 grid justify-items-center"
         >
-          <span
-            ref={hintLineRef}
-            className="block h-12 w-px origin-bottom bg-surface/70"
-          />
+          {/*
+            O trilho ganha presenca para baixo por gradiente, e nao por
+            opacidade uniforme. Isso da a ele um estado parado que ja aponta na
+            direcao certa — e o que sobra sob reduced-motion, onde o efeito
+            inteiro nao roda (o guard esta la em cima) e o traco nunca aparece,
+            porque nasce com opacity-0 no CSS.
+          */}
+          <span className="relative block h-12 w-px overflow-hidden bg-linear-to-b from-surface/10 to-surface/80">
+            <span
+              ref={hintDashRef}
+              className="absolute inset-x-0 top-0 block h-4 bg-surface opacity-0"
+            />
+          </span>
         </div>
       </Container>
     </section>

@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { Flavor } from '@/data/flavors'
 import {
-  PHOTO_CALIBRATION_ATTR,
   PHOTO_OFFSET_VAR,
   PHOTO_SCALE_VAR,
   photoCalibration,
@@ -61,16 +60,8 @@ export function PackPhoto({
     transform: `translateY(var(${PHOTO_OFFSET_VAR})) scale(var(${PHOTO_SCALE_VAR}))`,
   } as CSSProperties
 
-  /*
-    O atributo so existe onde a calibracao vale. Sem esse cuidado, o painel de
-    dev acharia tambem as fotos do catalogo e arrastaria os cards junto com o
-    palco da S6.
-  */
-  const calibrationAttr = calibrate ? { [PHOTO_CALIBRATION_ATTR]: flavor.id } : {}
-
   return (
     <img
-      {...calibrationAttr}
       src={flavor.photo}
       alt=""
       aria-hidden="true"

@@ -31,7 +31,9 @@ export const HERO_STAGE_RATIO = 1
   layout por breakpoint e nao cabe em style inline — ver :root em
   styles/index.css, que tambem explica a divisao de responsabilidade.
 
-  A constante aqui e so o nome, para o painel de dev saber onde escrever.
+  A constante aqui e so o nome. Ela existia para o painel de calibracao saber
+  onde escrever; sobreviveu a ele porque HERO_STAGE_WIDTH monta a expressao a
+  partir dela.
 */
 export const HERO_STAGE_HEIGHT_VAR = '--pack-stage-h'
 
@@ -58,19 +60,15 @@ export function photoCalibration(flavor: Flavor) {
   }
 }
 
-/** Nomes das custom properties que o painel de dev sobrescreve no elemento. */
+/*
+  Nomes das custom properties da calibracao. Elas existem como variavel, e nao
+  direto no transform, porque o painel de dev sobrescrevia uma sem reescrever a
+  string inteira. O painel saiu em 24/08/2026 e a indirecao ficou: e ela que
+  mantem os dois numeros legiveis no inspetor, um por linha, em vez de
+  enterrados dentro de um transform.
+*/
 export const PHOTO_SCALE_VAR = '--photo-scale'
 export const PHOTO_OFFSET_VAR = '--photo-offset-y'
-
-/*
-  Os dois rastros que o painel de dev deixa no codigo de producao. Sao dois
-  atributos de dado e nada mais: apagar src/dev/ nao quebra nada aqui.
-
-  CALIBRATION — na <img>, onde o painel escreve as custom properties acima.
-  LAYER       — no wrapper de opacidade, alvo dos modos sobrepor e solo.
-*/
-export const PHOTO_CALIBRATION_ATTR = 'data-photo-calibration'
-export const PHOTO_LAYER_ATTR = 'data-photo-layer'
 
 /*
   Rotulos acessiveis do pack fotografado. As <img> sao aria-hidden porque tres
