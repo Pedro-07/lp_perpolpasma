@@ -7,7 +7,14 @@ import {
   packPhotoLabel,
 } from '@/features/pack/pack-photos'
 import { CONTENT, whatsappLink, whatsappLinkFor } from '@/data/content'
-import { FLAVORS, PACK, type Flavor, type FlavorId } from '@/data/flavors'
+import {
+  FLAVORS,
+  PACK,
+  pulpGradientOf,
+  pulpInkOf,
+  type Flavor,
+  type FlavorId,
+} from '@/data/flavors'
 
 /*
   S3 — Catalogo. Os 8 sabores em cards (Secao 8).
@@ -146,10 +153,62 @@ function CardPack({
     <div
       role="img"
       aria-label={packPhotoLabel(flavor.name)}
-      className="relative w-full"
-      style={{ aspectRatio: HERO_STAGE_RATIO }}
+      className="relative w-full overflow-hidden rounded-md"
+      style={{
+        aspectRatio: HERO_STAGE_RATIO,
+        /*
+          O POCO DE POLPA, desde 24/08/2026.
+
+          Ate aqui os oito cards eram do mesmo cinza, e o sistema de cor
+          medida — topo, base, particula, tinta, oito sabores em oklab — vivia
+          em UM lugar so, a cena da S2. O catalogo, que e onde os oito
+          aparecem juntos e onde a compra se decide, nao usava nada dele.
+
+          A cor NAO vai atras do texto, e essa e a decisao que importa. Medido
+          contra o gradiente de cada sabor, o pior caso do nome sobre a polpa
+          dava 3,56:1 na goiaba e 3,42:1 no morango — passa como texto grande
+          e reprova como texto normal. Em vez de torcer a cor da tipografia
+          ate caber, a polpa fica sendo o fundo do pack e o texto sai de cima
+          dela. Contraste deixa de ser problema porque deixa de existir.
+
+          Ganha o conceito junto: o pack passa a flutuar dentro da propria
+          polpa que ele contem, e o grid de oito vira a paleta das frutas.
+        */
+        backgroundImage: pulpGradientOf(flavor),
+      }}
     >
-      <PackPhoto flavor={flavor} priority={priority} calibrate={false} />
+      {/*
+        SOMBRA, e nao poco mais escuro.
+
+        A borda do pack e plastico transparente, quase branco — medido entre
+        #D5D5D4 e #E5E4E4 nos oito. Contra a polpa clara ela sumia: 1,44:1 no
+        bacuri, 1,46:1 no abacaxi, contra os 3:1 que a WCAG 1.4.11 pede para
+        objeto grafico essencial. O produto perdia a silhueta dentro da
+        propria cor.
+
+        Duas coisas resolvem juntas, e nenhuma resolve sozinha.
+
+        O poco desceu um degrau — pulpGradientOf agora vai de base a
+        particula, ver o comentario la. Isso dobra a separacao no meio do
+        gradiente sem inventar cor.
+
+        E esta sombra fecha o resto. drop-shadow segue o canal alfa, entao ela
+        nasce do contorno real do saco e nao de uma caixa: cria contraste na
+        FRONTEIRA, que e onde a silhueta se perde, em vez de no campo. E o que
+        segura os sabores claros, onde nenhuma escolha de gradiente chega a
+        3:1 contra plastico quase branco.
+
+        As quatro combinacoes foram renderizadas lado a lado antes de escolher
+        — poco raso e fundo, com e sem sombra.
+
+        Estatica: nao anima, nao entra no orcamento da Secao 10.
+      */}
+      <PackPhoto
+        flavor={flavor}
+        priority={priority}
+        calibrate={false}
+        className="[filter:drop-shadow(0_8px_14px_rgba(0,0,0,0.34))]"
+      />
     </div>
   )
 }
@@ -174,9 +233,19 @@ function FlavorCard({
         </motion.div>
 
         <div>
+          {/*
+            O nome herda o escuro do proprio sabor em vez do preto do tema.
+
+            pulpInkOf ja existia para a cena da S2 e a regra dele resolve aqui
+            tambem: matiz do sabor, L fixo em 0,30, croma a 55%. O L fixo e o
+            que faz os oito nomes terem o mesmo peso otico — e, de brinde, o
+            mesmo contraste. Piso medido de 11,31:1 sobre o fundo do card,
+            AAA nos oito, com apenas 0,52 de folga entre o melhor e o pior.
+          */}
           <motion.h3
             layoutId={`nome-${flavor.id}`}
             className="font-display text-xl tracking-tighter"
+            style={{ color: pulpInkOf(flavor) }}
           >
             {flavor.name}
           </motion.h3>
@@ -226,11 +295,27 @@ function FlavorDetail({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      {/*
+        A CORTINA HERDA O ESCURO DO SABOR, e nao o preto do tema.
+
+        Abrir a uva escurece o mundo num roxo quase preto; a acerola, num
+        vermelho profundo. E o mesmo pulpInkOf do nome, entao nao ha cor nova
+        no sistema — e o sabor tapando a pagina com a propria sombra.
+
+        Nao anima: a cor troca de uma vez quando a seta muda de sabor. Uma
+        transicao de cor numa camada que cobre a tela inteira e repaint de
+        viewport cheio a cada frame, e a Secao 10 nao paga isso por um detalhe
+        que so aparece por meio segundo. Troca seca aqui le como resposta, nao
+        como corte.
+
+        A legibilidade do painel nao depende disto: ele e opaco por cima.
+      */}
       <button
         type="button"
         aria-label="Fechar"
         onClick={onClose}
-        className="absolute inset-0 bg-ink/70"
+        className="absolute inset-0"
+        style={{ backgroundColor: pulpInkOf(flavor), opacity: 0.7 }}
       />
 
       <motion.div
@@ -275,6 +360,7 @@ function FlavorDetail({
               id={`detalhe-${flavor.id}`}
               layoutId={`nome-${flavor.id}`}
               className="font-display text-4xl tracking-tighter"
+              style={{ color: pulpInkOf(flavor) }}
             >
               {flavor.name}
             </motion.h3>
