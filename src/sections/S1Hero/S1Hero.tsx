@@ -1,12 +1,11 @@
 import { useLayoutEffect, useRef } from 'react'
 import { Container } from '@/components/ui/Container'
 import { ProvisionalMark } from '@/components/ui/Pending'
-import { PackFan } from './PackFan'
+import { FAN_ITEM_SELECTOR, PackFan } from './PackFan'
 import { gsap } from '@/lib/gsap'
 import { onLoaderGate } from '@/features/loader/loader-gate'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { PackFloat } from './PackFloat'
-import { usePointerParallax } from './usePointerParallax'
 import { CONTENT, whatsappLink } from '@/data/content'
 import { isProvisional, textOf } from '@/data/pending'
 
@@ -48,6 +47,35 @@ function splitIntoLines(text: string): string[] {
 const ENTRANCE_FALLBACK_MS = 2500
 
 /*
+  Overshoot da abertura do leque. 1,3 e o MAXIMO que cabe, e o numero saiu de
+  conta, nao de gosto.
+
+  O PackFan documenta a envoltoria do pack lateral: meia largura escalada
+  (22,1%) + avanco do giro (6,9%) + deslocamento (18,7%) = 47,7% do centro,
+  contra os 50% onde o overflow-clip da secao apara. Sobram 2,27 pontos, e
+  quem passar deles corta o pack NO PICO do movimento, que e exatamente onde
+  o olho esta.
+
+  Envoltoria maxima por mola, varrendo a curva inteira:
+
+    back.out(s)   pico    envoltoria   folga
+        0,6      1,0125       47,99     2,01
+        0,9      1,0299       48,35     1,65
+        1,3      1,0615       48,99     1,01   <-- escolhido
+        1,5      1,0800       49,36     0,64
+        1,70158  1,1000       49,77     0,23   <-- padrao do GSAP
+        2,0      1,1317       50,41    -0,41   ESTOURA
+
+  O padrao do GSAP passaria com 0,23 de folga — dentro da conta, mas sem
+  margem nenhuma para o dia em que alguem mexer na largura ou no angulo. 1,3
+  e o mais agressivo que mantem um ponto inteiro de sobra.
+
+  Mexeu em PACK_WIDTH_PERCENT, SIDE_SHIFT_PERCENT, SIDE_ANGLE_DEG ou
+  SIDE_SCALE? Esta tabela precisa ser refeita.
+*/
+const FAN_BACK = 1.3
+
+/*
   S1 — Hero. Primeira impressao (Secao 6).
 
   Composicao assimetrica, heroi centralizado e proibido (Secao 5): a
@@ -71,15 +99,11 @@ export function S1Hero() {
   const hintRef = useRef<HTMLDivElement>(null)
   const hintDashRef = useRef<HTMLSpanElement>(null)
   const entranceRef = useRef<HTMLDivElement>(null)
-  const pointerRef = useRef<HTMLDivElement>(null)
   const lineRefs = useRef<(HTMLSpanElement | null)[]>([])
 
   // Texto solto, sem o marcador junto: ele entra separado, logo abaixo.
   const headline = textOf(CONTENT.hero.headline)
   const lines = headline ? splitIntoLines(headline) : []
-
-  // Parallax de mouse: desktop com ponteiro fino, e nunca sob reduced-motion.
-  usePointerParallax(pointerRef, !prefersReducedMotion)
 
   /*
     useLayoutEffect, e NAO useEffect: ele roda antes da pintura.
@@ -111,6 +135,22 @@ export function S1Hero() {
       */
       const heading = lineRefs.current.filter(Boolean)
       const entrance = entranceRef.current
+      const fanItems = gsap.utils.toArray<HTMLElement>(FAN_ITEM_SELECTOR)
+
+      /*
+        Repouso do leque, reescrito pelo GSAP nos mesmos termos que ele anima.
+
+        Nao da para animar a partir do transform do CSS: o navegador devolve
+        uma matriz, com o -50% ja virado pixel, e o GSAP interpolaria em cima
+        dela — a centralizacao quebraria no primeiro resize. Entao os valores
+        crus vem do dado que o PackFan escreveu em cada item, e a partir daqui
+        quem desenha o leque e o GSAP, nao a folha de estilo.
+      */
+      const fanRest = fanItems.map((item) => ({
+        xPercent: -50 + Number(item.dataset.fanShift),
+        rotation: Number(item.dataset.fanAngle),
+        scale: Number(item.dataset.fanScale),
+      }))
 
       /*
         130 e nao 110: a janela agora tem padding, e a 110% sobrava uma faixa
@@ -123,6 +163,22 @@ export function S1Hero() {
         opacity: 0,
         filter: 'blur(14px)',
         willChange: 'transform, opacity, filter',
+      })
+
+      /*
+        LEQUE FECHADO: os tres empilhados no centro, um atras do outro, no
+        tamanho do pack da frente. E o baralho antes do lance.
+
+        O comentario do PackFan sempre prometeu isso — "girar pela base as
+        apoia na mesma linha, que e como um leque de verdade se abre" — mas a
+        animacao nunca abria nada: as tres posicoes eram estaticas entre si e
+        so o grupo entrava. Os packs ja nasciam abertos.
+      */
+      gsap.set(fanItems, {
+        xPercent: -50,
+        rotation: 0,
+        scale: 1,
+        transformOrigin: 'bottom center',
       })
 
       const intro = gsap.timeline({
@@ -157,6 +213,28 @@ export function S1Hero() {
             duration: 1.1,
           },
           '-=0.45',
+        )
+        /*
+          O leque abre DEPOIS de o grupo ja estar chegando, nao junto: as duas
+          coisas ao mesmo tempo viram uma papa de movimento e nenhuma das duas
+          se le. Meio segundo de atraso deixa o bloco assentar primeiro.
+
+          Stagger a partir do centro. O pack da frente e o que a pessoa esta
+          olhando, entao ele para primeiro e os dois de tras abrem por baixo
+          dele — na ordem inversa, o olho persegue o movimento para fora e
+          volta, o que e o oposto do que a composicao quer.
+        */
+        .to(
+          fanItems,
+          {
+            xPercent: (i) => fanRest[i].xPercent,
+            rotation: (i) => fanRest[i].rotation,
+            scale: (i) => fanRest[i].scale,
+            duration: 0.85,
+            ease: `back.out(${FAN_BACK})`,
+            stagger: { from: 'center', each: 0.07 },
+          },
+          '-=0.55',
         )
 
       let fired = false
@@ -441,26 +519,33 @@ export function S1Hero() {
           className="order-first col-span-12 will-change-transform md:order-none md:col-span-6 md:col-start-7 md:row-start-1 md:self-center"
         >
           {/*
-            Quatro camadas aninhadas, uma por animacao, porque todas mexem em
-            transform e duas no mesmo eixo. Empilhadas no mesmo elemento, a
+            Camadas aninhadas, uma por animacao, porque todas mexem em
+            transform e varias no mesmo eixo. Empilhadas no mesmo elemento, a
             ultima a rodar apagaria as outras.
 
               packRef      parallax de saida, no scroll   (yPercent)
               entranceRef  entrada          (yPercent, scale, opacity, blur)
-              pointerRef   parallax de mouse, com spring  (x, y)
               PackFloat    flutuacao perpetua             (y)
+              --- daqui para dentro, quem manda e o PackFan ---
+              camada       parallax de mouse, por pack    (x, y)
+              item         abertura do leque              (xPercent, rot, scale)
 
-            O leque entra como bloco: as tres posicoes sao estaticas entre si
-            e o grupo inteiro e que respira, flutua e responde ao cursor.
+            O PARALLAX DE MOUSE DESCEU PARA DENTRO DO LEQUE em 24/08/2026.
+            Ele vivia aqui, num wrapper unico, e movia os tres packs juntos —
+            o que fazia o leque ler como figurinha plana. Agora cada pack e
+            uma camada com fator proprio e o grupo nao tem mais wrapper de
+            ponteiro: quem conhece a profundidade de cada pack e o PackFan,
+            nao a secao.
+
+            O grupo ainda respira e flutua como bloco. O que deixou de ser
+            bloco e a resposta ao cursor e a chegada.
           */}
           <div
             ref={entranceRef}
           >
-            <div ref={pointerRef}>
-              <PackFloat>
-                <PackFan />
-              </PackFloat>
-            </div>
+            <PackFloat>
+              <PackFan />
+            </PackFloat>
           </div>
         </div>
 
