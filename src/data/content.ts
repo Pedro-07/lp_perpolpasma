@@ -1,4 +1,4 @@
-import { pending, type Confirmable } from './pending'
+import { provisional, type Confirmable } from './pending'
 
 /*
   Toda copy do site.
@@ -45,16 +45,54 @@ export const CONTENT = {
     */
     foundingDate: FOUNDING_DATE,
     /*
-      O logotipo em vetor nunca chegou (Secao 12). Enquanto nao chegar, o
-      rodape mostra o nome em tipografia comum — e nao em display, que fingia
-      ser logotipo sem ser. O marcador aparece ao lado para a falta ficar
-      visivel: e o fecho da pagina que esta faltando, nao um detalhe.
+      LOGOTIPO — EM USO, NAO CONFIRMADO. Publicado em 22/08/2026 por decisao
+      do Pedro, com a divergencia registrada aqui e na Secao 5 do SPEC.
+
+      O arquivo e uma versao redesenhada da marca, nao o original da grafica.
+      Tres diferencas medidas contra o logotipo impresso no rotulo, que e a
+      unica fonte verificavel que existe hoje:
+
+        1. O SIMBOLO ® NAO ESTA. O rotulo traz "Perpolpas®", e a marca esta
+           registrada no INPI sob o processo 913653144. Esta e a diferenca que
+           pesa: o site afirma a marca registrada no rodape e mostra um
+           logotipo sem o simbolo dela.
+        2. A folha e outra — maior, com contorno pesado e um talo longo que
+           desce e encosta na haste do "l". A impressa e menor, simples, e so
+           pousa em cima.
+        3. Nao ha contorno branco. O logotipo impresso tem uma linha branca em
+           volta da tipografia, que e o que permite a ele sentar sobre foto.
+           Sem ela, este arquivo so funciona sobre fundo claro e chapado — que
+           e onde o rodape o coloca, entao hoje nao quebra nada. Quebraria no
+           dia em que alguem tentar usa-lo sobre o pack.
+
+      Consequencia pratica: nao serve para og:image, nem para o campo `logo`
+      do JSON-LD, nem para favicon. Esses tres pedem a marca correta, e um
+      deles vai para resultado de busca. Continuam esperando o vetor.
+
+      A pendencia do vetor NAO fecha com isto. O que fecha e o rodape ter um
+      fecho visual em vez de um marcador de falta.
     */
-    logo: pending(
-      'O logotipo em vetor (.ai, .eps, .svg ou .pdf) fecha o rodapé da ' +
-        'página. A imagem em alta recebida em 19/08/2026 não serve: era ' +
-        'versão reprocessada por IA, com folha, contorno e tipografia ' +
-        'redesenhados. Precisa vir de quem fez a marca.',
+    logo: provisional(
+      {
+        src: '/brand/logo-perpolpas.webp',
+        /*
+          Dimensoes intrinsecas do arquivo, para o browser reservar a caixa
+          antes de baixar a imagem. Sem elas o rodape sofre layout shift no
+          fim da pagina, que e onde a pessoa esta lendo com atencao.
+        */
+        width: 640,
+        height: 228,
+        /*
+          O alt nao descreve o desenho. Um logotipo, para quem usa leitor de
+          tela, E o nome da marca — descrever folha e tipografia gastaria a
+          atencao com o que nao carrega informacao.
+        */
+        alt: 'Perpolpas',
+      },
+      'O logotipo publicado é uma versão redesenhada: falta o ® que está ' +
+        'impresso no rótulo, a folha e a tipografia foram refeitas e não há ' +
+        'contorno branco. O vetor original (.ai, .eps, .svg ou .pdf) ' +
+        'continua pendente e precisa vir de quem fez a marca.',
     ),
   },
 

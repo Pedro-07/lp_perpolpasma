@@ -1,5 +1,5 @@
 import { Section } from '@/components/ui/Section'
-import { ConfirmableText } from '@/components/ui/Pending'
+import { ProvisionalMark } from '@/components/ui/Pending'
 import { CONTENT, whatsappLink } from '@/data/content'
 
 /*
@@ -76,6 +76,11 @@ const BUTTON_WHATSAPP = `${BUTTON_PRIMARY} gap-2`
 
 export function S4Contato() {
   const year = new Date().getFullYear()
+  /*
+    O logotipo esta em `provisional`, entao o valor vem embrulhado. Desempacota
+    uma vez aqui em vez de repetir `.value` em cada atributo da <img>.
+  */
+  const logo = CONTENT.brand.logo.value
 
   return (
     <Section id="s4" title={CONTENT.contato.title}>
@@ -202,17 +207,40 @@ export function S4Contato() {
             visivel e some no dia em que o vetor chegar.
           */}
           {/*
-            Peso sem fonte de display. O nome estava menor que o rotulo
-            "Razao social" ao lado — a empresa nao pode ser o menor elemento
-            do proprio rodape. Corpo maior, peso semibold e entrelinha
-            apertada dao presenca sem a Anton, que nao e a tipografia do
-            logotipo e so estava fingindo ser.
+            O LOGOTIPO ENTROU em 22/08/2026 e substituiu o nome em corpo
+            semibold que segurava este lugar desde 18/08. Aquele texto existia
+            porque nao havia arte nenhuma — a Anton tinha sido descartada
+            antes dele por fingir ser a tipografia da marca sem ser.
+
+            A arte ainda nao e o vetor original: e uma versao redesenhada, sem
+            o ® do rotulo. O que muda em relacao ao dia 19, quando uma imagem
+            parecida foi recusada, e so a decisao do Pedro de publicar assim.
+            A divergencia inteira esta em content.ts, no campo, e o marcador
+            `a confirmar` a mantem visivel na tela.
+
+            `provisional` guarda um objeto, entao ConfirmableText nao serve
+            aqui — ele renderiza texto. O desempacotamento e manual.
+
+            width e height vem do dado para o browser reservar a caixa antes
+            do download. A largura de tela e menor que a intrinseca de
+            proposito: 640 px de arquivo para ~208 px na tela cobrem tela
+            retina sem depender de srcset para uma imagem so.
           */}
-          <p className="font-body text-2xl leading-tight font-semibold tracking-tight">
-            {CONTENT.brand.name}
-          </p>
+          <img
+            src={logo.src}
+            alt={logo.alt}
+            width={logo.width}
+            height={logo.height}
+            /*
+              O rodape e a ultima coisa da pagina. Nao ha motivo para este
+              arquivo disputar banda com o packshot que decide o LCP.
+            */
+            loading="lazy"
+            decoding="async"
+            className="h-auto w-[13rem] max-w-full"
+          />
           <p className="text-xs">
-            <ConfirmableText value={CONTENT.brand.logo} />
+            <ProvisionalMark question={CONTENT.brand.logo.question} />
           </p>
           <p className="font-body text-sm text-ink-soft">
             {CONTENT.brand.city}, {CONTENT.brand.state}
