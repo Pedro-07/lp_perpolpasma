@@ -426,41 +426,6 @@ export function pulpInkOf(flavor: Flavor): string {
 }
 
 /*
-  Gradiente vertical da polpa, topo para base.
-
-  Mesmo par da camada 2 (Secao 5): a cor medida do topo e a cor medida da
-  base, sem passo intermediario inventado. Para maracuja e abacaxi, que ainda
-  nao tiveram a polpa medida, a base sai do MEAN_FALLOFF — o gradiente
-  existe nos oito, mas a procedencia nao e a mesma, e `colorsFromSpec` diz
-  qual e qual.
-
-  180deg e nao 160 ou 200: a polpa decanta na vertical dentro do saco, entao
-  a queda de luz e vertical. Inclinar seria decoracao.
-
-  DE BASE A PARTICULA, e nao de topo a base. A escolha e medida.
-
-  O poco existe para o pack se destacar dentro dele, e a borda do pack e
-  plastico transparente, quase branco: entre #D5D5D4 e #E5E4E4 nos oito
-  packshots. Contra o par topo/base ela sumia nos sabores claros — 1,44:1 no
-  bacuri, 1,46:1 no abacaxi.
-
-  Descer um degrau inteiro do sistema, de pulpBaseOf a pulpParticleOf, dobra
-  a separacao no meio do gradiente (1,44 para 2,00 no bacuri) sem introduzir
-  cor nenhuma de fora: pulpParticleOf ja e "a polpa na sombra", tres passos da
-  queda medida abaixo da base. O poco passa a ser a polpa no fundo do saco e
-  o pack fica sendo a polpa na luz.
-
-  HONESTIDADE SOBRE O NUMERO: no topo do poco a razao volta a 1,44, porque o
-  topo daqui e a base de la. Nenhuma escolha de gradiente leva os oito a 3:1
-  contra plastico quase branco — quem fecha o pior caso e a sombra em
-  drop-shadow do card, que cria contraste na fronteira em vez de no campo.
-  Ver o comentario em S3Catalogo.
-*/
-export function pulpGradientOf(flavor: Flavor): string {
-  return `linear-gradient(180deg, ${pulpBaseOf(flavor)} 0%, ${pulpParticleOf(flavor)} 100%)`
-}
-
-/*
   Estado "nenhum sabor ativo".
 
   Fora da cena heroi nao existe sabor, e a cor nao pode ficar congelada no
