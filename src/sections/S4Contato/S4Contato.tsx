@@ -1,5 +1,4 @@
 import { Section } from '@/components/ui/Section'
-import { ProvisionalMark } from '@/components/ui/Pending'
 import { CONTENT, whatsappLink } from '@/data/content'
 
 /*
@@ -198,28 +197,27 @@ export function S4Contato() {
       <div className="mt-10 grid gap-8 border-t border-ink/15 pt-8 md:grid-cols-12">
         <div className="grid content-start gap-3 md:col-span-5">
           {/*
-            O NOME NAO ESTA EM DISPLAY, e isso e deliberado desde 18/08/2026.
-
-            Anton nao e a tipografia do logotipo da Perpolpas — ela so estava
-            fingindo ser. Fechar uma pagina com um nome em fonte de display
-            errada e pior que fecha-la sem logotipo: parece decisao, e nao
-            falta. Em corpo comum, com o marcador ao lado, a falta fica
-            visivel e some no dia em que o vetor chegar.
-          */}
-          {/*
             O LOGOTIPO ENTROU em 22/08/2026 e substituiu o nome em corpo
             semibold que segurava este lugar desde 18/08. Aquele texto existia
             porque nao havia arte nenhuma — a Anton tinha sido descartada
-            antes dele por fingir ser a tipografia da marca sem ser.
+            antes dele por fingir ser a tipografia da marca sem ser, e o
+            aviso continua valendo: nenhuma fonte de display da pagina e a
+            tipografia da Perpolpas, entao nenhuma pode substituir o
+            logotipo se um dia esta imagem sair daqui.
 
             A arte ainda nao e o vetor original: e uma versao redesenhada, sem
             o ® do rotulo. O que muda em relacao ao dia 19, quando uma imagem
             parecida foi recusada, e so a decisao do Pedro de publicar assim.
-            A divergencia inteira esta em content.ts, no campo, e o marcador
-            `a confirmar` a mantem visivel na tela.
 
-            `provisional` guarda um objeto, entao ConfirmableText nao serve
-            aqui — ele renderiza texto. O desempacotamento e manual.
+            SEM MARCADOR NA TELA desde 24/08/2026, a pedido dele. O campo
+            continua `provisional` em content.ts, entao a divergencia segue
+            escrita e a auditoria do console continua contando — o que saiu
+            foi so o aviso visivel, que ficava logo abaixo do logotipo.
+
+            Consequencia: o rodape agora nao denuncia mais nada. Quem abrir a
+            pagina sem conhecer o historico ve uma marca fechada. O unico
+            lugar onde a ressalva ainda aparece e o console em dev e a Secao 5
+            do SPEC.
 
             width e height vem do dado para o browser reservar a caixa antes
             do download. A largura de tela e menor que a intrinseca de
@@ -239,9 +237,6 @@ export function S4Contato() {
             decoding="async"
             className="h-auto w-[13rem] max-w-full"
           />
-          <p className="text-xs">
-            <ProvisionalMark question={CONTENT.brand.logo.question} />
-          </p>
           <p className="font-body text-sm text-ink-soft">
             {CONTENT.brand.city}, {CONTENT.brand.state}
           </p>
