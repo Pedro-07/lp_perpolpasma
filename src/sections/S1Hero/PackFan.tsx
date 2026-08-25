@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { PackPhoto } from '@/features/pack/PackPhoto'
 import { PackShine } from './PackShine'
 import {
@@ -6,8 +5,6 @@ import {
   packPhotoLabel,
 } from '@/features/pack/pack-photos'
 import { OPENING_FAN } from '@/data/flavors'
-import { usePointerParallax } from './usePointerParallax'
-import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 /*
   Leque de packs da S1. Pedido em 17/08/2026, e revoga a decisao anterior de
@@ -62,41 +59,8 @@ const POSITIONS = [
   { shiftPercent: SIDE_SHIFT_PERCENT, angle: SIDE_ANGLE_DEG, scale: SIDE_SCALE, depth: 10 },
 ]
 
-/*
-  Alvo do leque que abre. A entrada mora na S1Hero, que e quem ordena a
-  headline antes do pack; ela acha os itens por seletor dentro do proprio
-  gsap.context, em vez de receber tres refs perfurando dois componentes.
-*/
-export const FAN_ITEM_SELECTOR = '[data-fan-item]'
-
-/*
-  Profundidade do parallax por pack. O do meio esta na frente e anda o
-  maximo; os laterais estao atras e andam pouco mais da metade.
-
-  A diferenca e o efeito inteiro: com fator igual nos tres — que era o caso
-  ate 24/08/2026, quando a mola movia o grupo — o leque desliza como uma
-  figurinha so. Com fatores diferentes, ele vira tres planos.
-
-  0,55 e nao 0,8: a separacao precisa ser lida em 10px de deslocamento
-  maximo. Diferenca pequena demais nesse curso nao aparece.
-*/
-const PARALLAX_FACTORS = [0.55, 1, 0.55] as const
-
 export function PackFan() {
   const middle = Math.floor(OPENING_FAN.length / 2)
-  const prefersReducedMotion = usePrefersReducedMotion()
-
-  /*
-    Uma camada de parallax por pack, separada do item que gira no leque.
-
-    DOIS ELEMENTOS, DOIS DONOS (Secao 3). A mola escreve x/y na camada de
-    fora; o leque escreve xPercent/rotation/scale no item de dentro. No mesmo
-    elemento os dois se sobrescreveriam — e pior: o repouso do leque usa
-    porcentagem, e a mola faria o GSAP decompor a matriz e congelar aquele
-    -50% em pixels, quebrando a centralizacao no primeiro resize.
-  */
-  const layerRefs = useRef<(HTMLDivElement | null)[]>([])
-  usePointerParallax(layerRefs, PARALLAX_FACTORS, !prefersReducedMotion)
 
   return (
     <div
@@ -115,53 +79,29 @@ export function PackFan() {
         return (
           <div
             key={flavor.id}
-            ref={(el) => {
-              layerRefs.current[i] = el
-            }}
+            role="img"
+            aria-label={packPhotoLabel(flavor.name)}
             className="absolute bottom-0 left-1/2"
             style={{
               width: `${PACK_WIDTH_PERCENT}%`,
               aspectRatio: HERO_STAGE_RATIO,
               zIndex: position.depth,
+              transformOrigin: 'bottom center',
+              transform: `translateX(-50%) translateX(${position.shiftPercent}%) rotate(${position.angle}deg) scale(${position.scale})`,
             }}
           >
-            <div
-              data-fan-item=""
-              /*
-                O repouso viaja no dado, e nao so no transform do CSS.
-
-                A entrada precisa animar ATE estes numeros, e ler o transform
-                computado nao serve: o navegador ja devolveu uma matriz, com o
-                -50% virado pixel e o giro embutido. Aqui os tres valores
-                chegam crus, na mesma unidade que o GSAP escreve.
-
-                O transform inline continua sendo a verdade do CSS — e ele que
-                desenha sob reduced-motion, quando a entrada nao roda.
-              */
-              data-fan-shift={position.shiftPercent}
-              data-fan-angle={position.angle}
-              data-fan-scale={position.scale}
-              role="img"
-              aria-label={packPhotoLabel(flavor.name)}
-              className="relative h-full w-full"
-              style={{
-                transformOrigin: 'bottom center',
-                transform: `translateX(-50%) translateX(${position.shiftPercent}%) rotate(${position.angle}deg) scale(${position.scale})`,
-              }}
-            >
-              {/*
-                So o do meio e candidato a LCP e so ele leva brilho. Os das
-                laterais carregam adiantados mas rebaixados, e um brilho em
-                cada um seriam tres animacoes perpetuas para um efeito que o
-                olho le como um.
-              */}
-              <PackPhoto
-                flavor={flavor}
-                lcp={isMiddle}
-                priority={!isMiddle}
-              />
-              {isMiddle && <PackShine photo={flavor.photo} />}
-            </div>
+            {/*
+              So o do meio e candidato a LCP e so ele leva brilho. Os das
+              laterais carregam adiantados mas rebaixados, e um brilho em cada
+              um seriam tres animacoes perpetuas para um efeito que o olho le
+              como um.
+            */}
+            <PackPhoto
+              flavor={flavor}
+              lcp={isMiddle}
+              priority={!isMiddle}
+            />
+            {isMiddle && <PackShine photo={flavor.photo} />}
           </div>
         )
       })}

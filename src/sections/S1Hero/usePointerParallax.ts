@@ -17,18 +17,6 @@ import { gsap } from '@/lib/gsap'
   Com massa 1, o par 100/20 da amortecimento critico: o pack alcanca o cursor
   e para, sem oscilar em volta. Deslocamento de poucos pixels de proposito —
   passou disso, vira brinquedo e briga com a leitura da headline.
-
-  VARIAS CAMADAS, UMA MOLA SO — mudanca de 24/08/2026.
-
-  Antes o hook movia o grupo inteiro do leque, e os tres packs andavam
-  exatamente juntos: o leque lia como figurinha plana deslizando, nao como
-  tres objetos a distancias diferentes.
-
-  Agora cada pack e uma camada com o proprio fator. A integracao continua
-  sendo UMA — mesmo alvo, mesma velocidade, mesmo estado — e o fator so
-  multiplica o deslocamento na hora de escrever. Tres molas independentes
-  dariam tres estados a integrar por frame para um resultado identico, ja que
-  o alvo e o mesmo para todas.
 */
 
 const STIFFNESS = 100
@@ -39,20 +27,13 @@ const MAX_OFFSET = 10
 const SETTLED = 0.01
 
 export function usePointerParallax(
-  /*
-    Ref para o ARRAY de elementos, e nao um array de refs: um array de refs
-    seria recriado a cada render e a dependencia do efeito nunca estabilizaria,
-    remontando o ticker sem parar.
-  */
-  refs: RefObject<(HTMLElement | null)[]>,
-  /** Um fator por camada, na mesma ordem. 1 anda o maximo; 0 nao anda. */
-  factors: readonly number[],
+  ref: RefObject<HTMLElement | null>,
   enabled: boolean,
 ) {
   useEffect(() => {
     if (!enabled) return
-    const elements = refs.current?.filter(Boolean) as HTMLElement[] | undefined
-    if (!elements || elements.length === 0) return
+    const element = ref.current
+    if (!element) return
 
     /*
       Ponteiro grosso nao tem posicao de repouso: o dedo toca e sai, e o pack
@@ -60,11 +41,8 @@ export function usePointerParallax(
     */
     if (!window.matchMedia('(pointer: fine)').matches) return
 
-    const setters = elements.map((element, i) => ({
-      x: gsap.quickSetter(element, 'x', 'px'),
-      y: gsap.quickSetter(element, 'y', 'px'),
-      factor: factors[i] ?? 1,
-    }))
+    const setX = gsap.quickSetter(element, 'x', 'px')
+    const setY = gsap.quickSetter(element, 'y', 'px')
 
     let targetX = 0
     let targetY = 0
@@ -83,10 +61,8 @@ export function usePointerParallax(
       x += vx * dt
       y += vy * dt
 
-      for (const setter of setters) {
-        setter.x(x * setter.factor)
-        setter.y(y * setter.factor)
-      }
+      setX(x)
+      setY(y)
 
       const still =
         Math.abs(vx) < SETTLED &&
@@ -129,7 +105,7 @@ export function usePointerParallax(
       window.removeEventListener('pointermove', onPointerMove)
       document.removeEventListener('pointerleave', onPointerLeave)
       stop()
-      gsap.set(elements, { x: 0, y: 0 })
+      gsap.set(element, { x: 0, y: 0 })
     }
-  }, [refs, factors, enabled])
+  }, [ref, enabled])
 }
